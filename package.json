@@ -1,0 +1,21 @@
+{
+  "name": "wsrs",
+  "version": "1.0.0",
+  "description": "websocket request-response wrapper",
+  "main": "lib/index.js",
+  "scripts": {
+    "install": "iced -o lib -c src",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hu2prod/wsrs.git"
+  },
+  "keywords": [],
+  "author": "hu2prod",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hu2prod/wsrs/issues"
+  },
+  "homepage": "https://github.com/hu2prod/wsrs#readme"
+}
