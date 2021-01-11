@@ -31,7 +31,7 @@ class window.Ws_request_service
             v.callback new Error "timeout"
         return
       , @interval
-
+  
   request : (hash, handler, opt = {})->
     err_handler = null
     callback = (err, res)=>
@@ -52,5 +52,5 @@ class window.Ws_request_service
     }
     @ws.write hash
     return hash.request_uid
-
+  
   send : @prototype.request
