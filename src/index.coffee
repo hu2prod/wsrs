@@ -1,4 +1,4 @@
-class window.Ws_request_service
+class Ws_request_service
   ws : null
   request_uid : 0
   response_hash : {}
@@ -54,3 +54,5 @@ class window.Ws_request_service
     return hash.request_uid
   
   send : @prototype.request
+
+module.exports = Ws_request_service
