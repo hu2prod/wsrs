@@ -4,7 +4,7 @@
   "description": "websocket request-response wrapper",
   "main": "lib/index.js",
   "scripts": {
-    "install": "iced -o lib -c src",
+    "install": "npx iced -o lib -c src",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
