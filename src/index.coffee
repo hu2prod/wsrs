@@ -4,7 +4,7 @@ class Ws_request_service
   response_hash : {}
   interval: 30000
   timeout : 30000
-
+  
   constructor : (@ws)->
     @response_hash = {}
     @ws.on "data", (data)=>

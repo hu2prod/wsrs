@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/hu2prod/wsrs/issues"
   },
-  "homepage": "https://github.com/hu2prod/wsrs#readme"
+  "homepage": "https://github.com/hu2prod/wsrs#readme",
+  "dependencies": {
+    "iced-coffee-script": "^108.0.14"
+  }
 }
