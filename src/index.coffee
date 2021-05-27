@@ -4,6 +4,7 @@ class Ws_request_service
   response_hash : {}
   interval: 30000
   timeout : 30000
+  quiet   : false
   
   constructor : (@ws)->
     @response_hash = {}
@@ -17,7 +18,8 @@ class Ws_request_service
           else
             cb null, data
         else
-          perr "missing request_uid = #{data.request_uid}. Possible timeout. switch=#{data.switch}"
+          if !@quiet
+            perr "missing request_uid = #{data.request_uid}. Possible timeout. switch=#{data.switch}"
       return
     setTimeout ()=>
       setInterval ()=>
@@ -25,9 +27,10 @@ class Ws_request_service
         for k,v of @response_hash
           if now > v.end_ts
             delete @response_hash[k]
-            perr "ws_request_service timeout"
-            perr v.hash
-            perr v.callback_orig.toString()
+            if !@quiet
+              perr "ws_request_service timeout"
+              perr v.hash
+              perr v.callback_orig.toString()
             v.callback new Error "timeout"
         return
       , @interval
