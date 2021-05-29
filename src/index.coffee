@@ -5,11 +5,24 @@ class Ws_request_service
   interval: 30000
   timeout : 30000
   quiet   : false
+  bin_encode_fn : null
+  bin_decode_fn : null
   
   constructor : (@ws)->
     @response_hash = {}
     @ws.on "data", (data)=>
       # puts data
+      if data instanceof Buffer
+        if !@bin_decode_fn
+          if !@quiet
+            perr "unexpected binary data. No bin_decode_fn"
+          return
+        try
+          data = @bin_decode_fn data
+        catch err
+          if !@quiet
+            perr "decode error", err
+          return
       if data.request_uid?
         if @response_hash[data.request_uid]?
           cb = @response_hash[data.request_uid].callback
@@ -36,6 +49,9 @@ class Ws_request_service
       , @interval
   
   request : (hash, handler, opt = {})->
+    is_binary = opt.bin or opt.binary
+    if is_binary and !@bin_encode_fn
+      return handler new Error "no bin_encode_fn"
     err_handler = null
     callback = (err, res)=>
       @ws.off "error", err_handler
@@ -53,9 +69,20 @@ class Ws_request_service
       callback_orig : handler
       end_ts    : Date.now() + (opt.timeout or @timeout)
     }
-    @ws.write hash
+    if is_binary
+      @ws.write @bin_encode_fn hash
+    else
+      @ws.write hash
     return hash.request_uid
   
+  request_bin : (hash, handler, opt = {})->
+    opt.binary = true
+    @request hash, handler, opt
+  
   send : @prototype.request
+  
+  send_bin      : @prototype.request_bin
+  request_binary: @prototype.request_bin
+  send_binary   : @prototype.request_bin
 
 module.exports = Ws_request_service
