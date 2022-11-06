@@ -42,42 +42,59 @@ class Ws_request_service
             delete @response_hash[k]
             if !@quiet
               perr "ws_request_service timeout"
-              perr v.hash
+              perr v.req
               perr v.callback_orig.toString()
             v.callback new Error "timeout"
         return
       , @interval
   
-  request : (hash, handler, opt = {})->
+  request : (req, cb, opt = {})->
     is_binary = opt.bin or opt.binary
     if is_binary and !@bin_encode_fn
-      return handler new Error "no bin_encode_fn"
+      return cb new Error "no bin_encode_fn"
+    
+    if opt.retry? and opt.retry > 1
+      opt = clone opt
+      {retry} = opt
+      delete opt.retry
+      err = null
+      res = null
+      for i in [0 ... retry]
+        await @request req, defer(err, res), opt
+        break if !err
+        break if !err._is_connection_error
+        perr err
+      
+      cb err, res
+      return
+    
     err_handler = null
     callback = (err, res)=>
       @ws.off "error", err_handler
-      delete @response_hash[hash.request_uid] if err or !res.continious_request
+      delete @response_hash[req.request_uid] if err or !res.continious_request
       delete res.request_uid if res?
-      handler err, res
+      cb err, res
     
     @ws.once "error", err_handler = (err)=>
+      err._is_connection_error = true
       callback err
     
-    hash.request_uid = @request_uid++
-    @response_hash[hash.request_uid] = {
-      hash
+    req.request_uid = @request_uid++
+    @response_hash[req.request_uid] = {
+      req
       callback
-      callback_orig : handler
+      callback_orig : cb
       end_ts    : Date.now() + (opt.timeout or @timeout)
     }
     if is_binary
-      @ws.write @bin_encode_fn hash
+      @ws.write @bin_encode_fn req
     else
-      @ws.write hash
-    return hash.request_uid
+      @ws.write req
+    return req.request_uid
   
-  request_bin : (hash, handler, opt = {})->
+  request_bin : (req, cb, opt = {})->
     opt.binary = true
-    @request hash, handler, opt
+    @request req, cb, opt
   
   send : @prototype.request
   
