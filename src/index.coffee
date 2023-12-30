@@ -8,6 +8,7 @@ class Ws_request_service
   bin_encode_fn : null
   bin_decode_fn : null
   
+  is_alive : true
   constructor : (@ws)->
     @response_hash = {}
     @ws.on "data", (data)=>
@@ -34,8 +35,9 @@ class Ws_request_service
           if !@quiet
             perr "missing request_uid = #{data.request_uid}. Possible timeout. switch=#{data.switch}"
       return
+    
     setTimeout ()=>
-      setInterval ()=>
+      while @is_alive
         now = Date.now()
         for k,v of @response_hash
           if now > v.end_ts
@@ -45,8 +47,11 @@ class Ws_request_service
               perr v.req
               perr v.callback_orig.toString()
             v.callback new Error "timeout"
-        return
-      , @interval
+        await setTimeout defer(), @interval
+    , 1
+  
+  delete : ()->
+    @is_alive = false
   
   request : (req, cb, opt = {})->
     is_binary = opt.bin or opt.binary
@@ -59,11 +64,11 @@ class Ws_request_service
       delete opt.retry
       err = null
       res = null
-      for i in [0 ... retry]
+      for retry_idx in [0 ... retry]
         await @request req, defer(err, res), opt
         break if !err
         break if !err._is_connection_error
-        perr err
+        perr "retry_idx=#{retry_idx}", req, err
       
       cb err, res
       return
