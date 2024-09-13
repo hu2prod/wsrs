@@ -2,6 +2,7 @@ class Ws_request_service
   ws : null
   request_uid : 0
   response_hash : {}
+  _interval : null
   interval: 30000
   timeout : 30000
   quiet   : false
@@ -35,7 +36,7 @@ class Ws_request_service
             perr "missing request_uid = #{data.request_uid}. Possible timeout. switch=#{data.switch}"
       return
     setTimeout ()=>
-      setInterval ()=>
+      @_interval = setInterval ()=>
         now = Date.now()
         for k,v of @response_hash
           if now > v.end_ts
@@ -47,6 +48,9 @@ class Ws_request_service
             v.callback new Error "timeout"
         return
       , @interval
+  
+  delete : ()->
+    clearInterval @_interval
   
   request : (hash, handler, opt = {})->
     is_binary = opt.bin or opt.binary
